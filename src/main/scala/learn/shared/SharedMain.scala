@@ -3,7 +3,7 @@ package learn.shared
 import akka.actor.{ActorSystem, Props}
 import akka.cluster.Cluster
 
-object SharedMain extends App {
+object SharedMain{
   val system = systemInit("launch")
   val cluster = Cluster.get(system)
   cluster.join(cluster.selfAddress)
