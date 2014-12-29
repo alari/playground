@@ -2,6 +2,8 @@ package learn.storage
 
 import org.specs2.mutable.Specification
 
+import scalaz.Monoid
+
 class KeyValueSpec extends Specification {
 
   val empty = KeyValue(Map.empty[String,KeyValue[String]])
@@ -15,8 +17,6 @@ class KeyValueSpec extends Specification {
       val wk = empty.update("test", "any")
 
       wk("test") should beSome("any")
-
-      println(wk.flatten)
 
       wk.flatten should_== Map("/test" -> "any")
 
@@ -39,8 +39,6 @@ class KeyValueSpec extends Specification {
 
       wk2.flattenBranch("test/subkey").size should_== 1
 
-      println(wk2.flattenBranch("test/subkey"))
-
       wk2.flattenBranch("test/subkey").exists(kv => kv._1 == "/test/subkey/2") should beTrue
     }
 
@@ -50,9 +48,6 @@ class KeyValueSpec extends Specification {
       wk.flatten.size should_== 3
       wk.flattenBranch("test").size should_== 3
       wk.flattenBranch("some").size should_== 0
-
-
-      println(wk.span(_.size > 5))
 
       wk.span(_.size > 5)._1.isEmpty should beTrue
 
@@ -79,19 +74,18 @@ class KeyValueSpec extends Specification {
 
       wk.removeBranch("/test/subkey").flatten.size should_== 1
     }
-//
-//    "add values" in {
-//      val wk = empty.set("test/some", "any", 3)
-//
-//      wk.list().size should_== 1
-//
-//      wk.add("test/some", "other", 3).list().size should_== 1
-//
-//      wk.add("/test/some", "other", 3).list().exists(_._2.value match {
-//        case v: Vector[_] => v.contains("any") && v.contains("other")
-//        case _ => false
-//      }) should beTrue
-//    }
+
+    "add values" in {
+      implicit val m = Monoid.instance[String](_ + _, "")
+
+      val wk = empty.update("test/some", "any")
+
+      wk.flatten.size should_== 1
+
+      wk.add("test/some", "other").flatten.size should_== 1
+
+      wk.add("/test/some", "other").flatten.apply("/test/some") should_== "anyother"
+    }
 
     "handle empty key" in {
       val wk = empty.update("", "root")

@@ -65,7 +65,10 @@ case class KeyValue[T](branch: Map[String, KeyValue[T]] = Map.empty[String,KeyVa
 
   def update(keys: String, v: T): KV = leaf(keys).set(this, Some(v))
 
-  def add(keys: String, v: T)(implicit m: Monoid[T]) = leaf(keys).get(this).fold(Some(v))(vv => Some(m.append(v, vv)))
+  def add(keys: String, v: T)(implicit m: Monoid[T]): KV = {
+    val l = leaf(keys)
+    l.set(this, l.get(this).fold(Some(v))(vv => Some(m.append(vv, v))))
+  }
 
   def unset(keys: String): KV = leaf(keys).set(this, None)
 
