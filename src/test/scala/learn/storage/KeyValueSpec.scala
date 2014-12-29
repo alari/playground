@@ -50,21 +50,14 @@ class KeyValueSpec extends Specification {
       wk.flattenBranch("some").size should_== 0
 
       wk.span(_.size > 5)._1.isEmpty should beTrue
+      wk.span(_.size > 5)._2 should_== wk
 
-//
-//      wk.span(_.size > 5)._2.isEmpty should beFalse
-//
-//      wk.span(_.size > 3)._1.isEmpty should beFalse
-//      wk.expire(3) should_== wk.expireList(3)._2
-//
-//      wk.expire(3).list().size should_== 1
-//      wk.expireList(3)._1.size should_== 2
-//
-//      wk.expire(2).list().size should_== 2
-//
-//      val wk2 = wk.update("test/sub", "check", 5)
-//
-//      wk.expire(4).isEmpty should beTrue
+      wk.span(_.size > 2)._1 should_== empty.update("test", "any")
+      wk.span(_.size > 2)._2 should_== empty.update("test/subkey", "ot").update("/test/subkey/3", "v")
+
+      wk.span(_.size > 1)._1 should_== empty.update("test", "any").update("test/subkey", "ot")
+      wk.span(_.size > 1)._2 should_== empty.update("/test/subkey/3", "v")
+
     }
 
     "remove keys" in {
