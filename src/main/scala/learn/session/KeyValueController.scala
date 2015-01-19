@@ -1,22 +1,15 @@
 package learn.session
 
-import java.util.UUID
-
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.ActorSystem
 import akka.http.Http
 import akka.http.marshalling.Marshaller._
 import akka.http.model._
 import akka.http.server.Directives._
 import akka.http.server._
 import akka.http.unmarshalling.{FromRequestUnmarshaller, Unmarshaller}
-import akka.persistence.PersistentActor
 import akka.stream.FlowMaterializer
 
 import scala.concurrent.Future
-import scala.reflect.ClassTag
-
-
-
 
 
 trait SessionController {
@@ -50,7 +43,7 @@ trait SessionController {
       get {
         complete(HttpResponse(entity = "GET sessions " + id))
       } ~ post {
-        complete(HttpResponse(entity = "CREATE NEW SESSION "+id))
+        complete(HttpResponse(entity = "CREATE NEW SESSION " + id))
       }
     }
 
@@ -76,7 +69,7 @@ trait SessionController {
 }
 
 
-object KeyValueController extends App with SessionController {
+object KeyValueController extends SessionController {
 
   implicit val system = ActorSystem("http-system")
   implicit val materializer = FlowMaterializer()
@@ -92,6 +85,6 @@ object KeyValueController extends App with SessionController {
         complete(HttpResponse(entity = "HIPONG!"))
       }
 
-  Http(system).bind(interface = "localhost", port = 8383).startHandlingWith(Route.handlerFlow(router))
+  //Http(system).bind(interface = "localhost", port = 8383).startHandlingWith(Route.handlerFlow(router))
 
 }

@@ -2,7 +2,7 @@ name := "scalaz-test"
 
 version := "1.0"
 
-mainClass := Some("learn.session.KeyValueController")
+mainClass := Some("learn.storage.MainExp")
 
 scalaVersion := "2.11.4"
 
@@ -23,7 +23,9 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-effect" % scalazV,
   "org.scalaz" %% "scalaz-typelevel" % scalazV,
   "org.scalaz" %% "scalaz-scalacheck-binding" % scalazV % "test",
-  "org.specs2" %% "specs2-core" % "2.4.15" % "test"
+  "org.specs2" %% "specs2-core" % "2.4.15" % "test",
+  "org.pegdown" % "pegdown" % "1.4.2",
+  "com.googlecode.java-diff-utils" % "diffutils" % "1.2.1"
 )
 
 scalacOptions ++= Seq(
