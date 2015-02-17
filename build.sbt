@@ -2,13 +2,13 @@ name := "scalaz-test"
 
 version := "1.0"
 
-mainClass := Some("learn.storage.MainExp")
+mainClass := Some("learn.EchoApp")
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
-val scalazV = "7.1.0"
-val akkaV = "2.3.8"
-val akkaHttpV = "1.0-M2"
+val scalazV = "7.1.1"
+val akkaV = "2.3.9"
+val akkaHttpV = "1.0-M3"
 
 resolvers += ("jdgoldie at bintray" at "http://dl.bintray.com/jdgoldie/maven")
 
@@ -34,7 +34,7 @@ scalacOptions ++= Seq(
   "-deprecation",
   "-Ywarn-dead-code",
   "-language:_",
-  "-target:jvm-1.7",
+  "-target:jvm-1.8",
   "-encoding", "UTF-8"
   )
 
