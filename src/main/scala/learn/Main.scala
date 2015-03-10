@@ -1,11 +1,15 @@
 package learn
+
+import scala.annotation.tailrec
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz._, Scalaz._
 
 /**
  * @author alari
  * @since 3/24/14
  */
-object Main {
+object Main extends App{
   println("hi !")
 
   println(10.some | 5)
@@ -239,4 +243,195 @@ object Main {
   } yield o
 
   println("Kleisli produces "+ro(0))
+
+
+
+
+
+  def testScalaz: String = {
+    import scalaz._
+    import Scalaz._
+
+    def addString(s: String) = Kleisli[Option, Int, String] {
+      a =>
+        (a + s).some
+    }
+
+    def markPong = Kleisli[Option, String, String] {
+      a => (a + " - pong").some
+    }
+
+    def pongPong = addString("-p-o-n-g") andThen markPong
+
+    type V[T] = \/[String,T]
+
+    def otherEffect = Kleisli[V, String, String] {
+      s =>
+        if(s == "ok") \/-("right")
+        else -\/("left")
+    }
+
+    case class Domain[T](v: String)
+
+    sealed trait TState
+    sealed trait TOddState extends TState
+    sealed trait TEvenState extends TState
+    trait T_0 extends TEvenState
+    trait T_1 extends TOddState
+    trait T_2 extends TEvenState
+    trait T_3 extends TOddState
+
+    type TOddDomain = Domain[_ <: TOddState]
+    type TEvenDomain = Domain[_ <: TEvenState]
+    type T1Domain = Domain[T_1]
+    type T0Domain = Domain[T_0]
+
+    def printOdd = Kleisli[V, TOddDomain, String]{
+      t => \/-("odd "+t.v)
+    }
+
+    def printEven = Kleisli[V, TEvenDomain, String]{
+      t => \/-("even "+t.v)
+    }
+
+    def toOdd = Kleisli[V, T0Domain, TOddDomain]{
+      t => t.copy[T_1]().right.map(identity[TOddDomain])
+    }
+
+    printOdd.run( Domain[T_1]("1") )
+    printEven.run( Domain[T_2]("1") )
+
+    def fk = Kleisli[Future, String, String]{
+      s => Future(s)
+    }
+
+    def ak: String => Int = _.reverseIterator.mkString.toInt
+
+    def fak = fk map ak
+
+    def fkfak = fk map fak
+
+    fak
+
+    fkfak
+
+    pongPong.run(1).getOrElse("ping")
+  }
+
+
+  {
+
+    def curry[A, B, C](f: (A, B) => C): A => B => C = a => f(a, _)
+    def uncurry[A, B, C](f: A => B => C): (A, B) => C = f(_)(_)
+    def compose[A, B, C](f: B => C, g: A => B): A => C = a => f(g(a))
+    @tailrec
+    def drop[T](l: List[T], n: Int): List[T] = n match {
+      case 0 => l
+      case _ => drop(l.tail, n - 1)
+    }
+    def length[T](l: List[T]): Int = l.foldRight(0) {
+      case (_, n) => n + 1
+    }
+    def append[T](l: List[T], e: T): List[T] = l.foldRight(List(e)) {
+      case (x, xs) => x :: xs
+    }
+    def flatten[T](l: List[List[T]]): List[T] = l.foldLeft(Nil: List[T])(_ ++ _)
+    println("append " + append(List(1, 2), 3))
+    println(List(1, 2, 3).foldLeft(Nil: List[Int]) {
+      case (xs, x) => x :: xs
+    })
+    def filter[A](l: List[A])(f: A => Boolean) = l.flatMap {
+      case m if f(m) => m :: Nil
+      case m =>
+        Nil
+    }
+    @tailrec
+    def hasPrefix[A](sup: List[A], pref: List[A]): Boolean = if (pref == Nil) true
+    else sup match {
+      case `pref` => true
+      case x :: xs =>
+        pref match {
+          case `x` :: ys =>
+            hasPrefix(xs, ys)
+          case _ => false
+        }
+      case _ => false
+    }
+
+    def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean =
+      if (sub == Nil) true
+      else sup match {
+        case `sub` => true
+        case _ if sub.length >= sup.length =>
+          false
+        case _ if hasPrefix(sup, sub) => true
+        case _ :: xs => hasSubsequence(xs, sub)
+      }
+
+
+    val lst = List(1, 2, 3, 4)
+    println("pref 1,2 in l = " + hasPrefix(lst, List(1, 2)))
+    println("1,2 in l = " + hasSubsequence(lst, List(1, 2)))
+    println("2,3 in l = " + hasSubsequence(lst, List(2, 3)))
+    println("2,3,4 in l = " + hasSubsequence(lst, List(2, 3, 4)))
+    println("4 in l = " + hasSubsequence(lst, List(4)))
+    println("2,4 in l = " + hasSubsequence(lst, List(2, 4)))
+    println("5 in l = " + hasSubsequence(lst, List(5)))
+
+
+
+    println("l = " + length(1 :: 2 :: Nil))
+
+  }
+
+  {
+    sealed trait Tree[A]
+    case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+    case class Leaf[A](value: A) extends Tree[A]
+
+    def size[A](tree: Tree[A]): Int = tree match {
+      case Leaf(_) => 1
+      case Branch(l, r) => 1 + size(l) + size(r)
+    }
+    def top[A](tree: Tree[A])(f: (A, A) => A): A = tree match {
+      case Leaf(v) => v
+      case Branch(l, r) => f(top(l)(f), top(r)(f))
+    }
+    def depth[A](tree: Tree[A]): Int = tree match {
+      case Leaf(_) => 0
+      case Branch(l, r) => 1 + (depth(l) max depth(r))
+    }
+    def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = tree match {
+      case Leaf(v) => Leaf(f(v))
+      case Branch(l, r) => Branch(map(l)(f), map(r)(f))
+    }
+    def fold[A, B](tree: Tree[A])(f: A => B)(g: (B, B) => B): B = tree match {
+      case Leaf(v) => f(v)
+      case Branch(l, r) => g(fold(l)(f)(g), fold(r)(f)(g))
+    }
+    def sizeFold[A](t: Tree[A]): Int = fold(t)(_ => 1)(1 + _ + _)
+    def topFold[A](t: Tree[A], f: (A, A) => A): A = fold(t)(identity)(f)
+    def mapFold[A, B](t: Tree[A])(f: A => B): Tree[B] = fold(t)(v => Leaf(f(v)): Tree[B])(Branch(_, _))
+  }
+
+  {
+    def liftOpt[A,B](f: A => B): Option[A] => Option[B] = _ map f
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A,B)=>C): Option[C] = a.flatMap(v => b.map(f(v, _)))
+
+    def seqOpt[A](l: List[Option[A]]): Option[List[A]] = traverse(l)(identity)
+
+    def traverse[A,B](a: List[A])(f: A => Option[B]): Option[List[B]] = a match {
+      case Nil => Some(Nil)
+      case x :: xs =>
+        f(x).flatMap(v => traverse(xs)(f).map(v :: _))
+    }
+
+    def traverseE[E, A, B](l: List[A])(f: A => Either[E, B]): Either[E, List[B]] = l match {
+      case Nil => Right(Nil)
+      case x :: xs =>
+        f(x).right.flatMap(v => traverseE(xs)(f).right.map(v :: _))
+    }
+  }
+
+
 }

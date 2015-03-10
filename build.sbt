@@ -2,13 +2,13 @@ name := "scalaz-test"
 
 version := "1.0"
 
-mainClass := Some("learn.EchoApp")
+mainClass := Some("learn.Main")
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 val scalazV = "7.1.1"
 val akkaV = "2.3.9"
-val akkaHttpV = "1.0-M3"
+val akkaHttpV = "1.0-M4"
 
 resolvers += ("jdgoldie at bintray" at "http://dl.bintray.com/jdgoldie/maven")
 
